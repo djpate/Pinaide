@@ -5,7 +5,7 @@ class TreeViewFile
 		populate(dir)
 		setRenderer
 	end
-	
+
 	def setRenderer
 		@renderer = Gtk::CellRendererText.new
 		col = Gtk::TreeViewColumn.new("Project", @renderer, :text => 0)

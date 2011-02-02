@@ -2,6 +2,8 @@ class Application
 
 	def initialize(project_dir)
 		@project_dir = project_dir
+		@pinaide_dir = project_dir + "/.pinaide"
+		reset_project_file
 		@opened_files = Hash.new
 		Gtk.init
 		create_window
@@ -11,10 +13,21 @@ class Application
 		Gtk.main
 	end
 	
+	def reset_project_file
+		if !File.directory? @pinaide_dir
+			Dir.rmdir(@pinaide_dir)
+		end
+		if File.exist? @pinaide_dir+"/autocomplete.xml"
+			File.delete(@pinaide_dir+"/autocomplete.xml")
+		end
+	end
+	
 	def create_window
-		Gtk.init
 		@window = Gtk::Window.new(Gtk::Window::TOPLEVEL)
-		@window.signal_connect( "destroy" ) { Gtk.main_quit }
+		@window.signal_connect( "destroy" ) {
+			reset_project_file
+			Gtk.main_quit 
+		}
 		screen = @window.screen
 		@window.set_default_size(screen.width,screen.height)
 	end
@@ -43,8 +56,8 @@ class Application
 			source.buffer.highlight_matching_brackets = true
 			source.buffer.text = myFile.content
 			#register autocomplete
-			source.buffer.signal_connect("insert-text") do |buffer,iter,text,len|
-				autocomplete(buffer,iter,text,len)
+			source.buffer.signal_connect("changed") do |buffer|
+				autocomplete(buffer)
 			end
 			#label
 			label = Gtk::Label.new
@@ -84,8 +97,24 @@ class Application
 		end
 	end
 	
-	def autocomplete(buffer,iter,text,length)
-		
+	def autocomplete(buffer)
+		#get the complete string to autocomplete by going back until we reach a space - new line etc
+		text = buffer.get_text(buffer.get_iter_at_offset(buffer.cursor_position-1),buffer.get_iter_at_offset(buffer.cursor_position)).chomp
+		if text != " " && text != ""
+			offset = buffer.cursor_position-1
+			loop = 1
+			full_text = text
+			while loop == 1
+				current_char = buffer.get_text(buffer.get_iter_at_offset(offset-1),buffer.get_iter_at_offset(offset))
+				if current_char != " " && current_char != "\n"
+					full_text = current_char + full_text
+					offset = offset - 1
+				else
+					loop = 0
+				end
+			end
+			puts full_text
+		end
 	end
 	
 end
