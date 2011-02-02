@@ -2,6 +2,7 @@ class Application
 
 	def initialize(project_dir)
 		@project_dir = project_dir
+		@opened_files = Hash.new
 		Gtk.init
 		create_window
 		create_inner_layout
@@ -30,27 +31,35 @@ class Application
 	end
 	
 	def add_file(file)
-		#file
-		myFile = PinaideFile.new(file)
-		#editor
-		source = Gtk::SourceView.new
-		lang = Gtk::SourceLanguageManager.new.get_language('php')
-		source.buffer.language = lang
-		source.set_show_line_numbers(true)
-		source.buffer.highlight_syntax = true
-		source.buffer.highlight_matching_brackets = true
-		source.buffer.text = myFile.content
-		#register autocomplete
-		source.buffer.signal_connect("insert-text") do |buffer,iter,text,len|
-			autocomplete(buffer,iter,text,len)
+		if !@opened_files.has_key? file 
+			#file
+			myFile = PinaideFile.new(file)
+			#editor
+			source = Gtk::SourceView.new
+			lang = Gtk::SourceLanguageManager.new.get_language('php')
+			source.buffer.language = lang
+			source.set_show_line_numbers(true)
+			source.buffer.highlight_syntax = true
+			source.buffer.highlight_matching_brackets = true
+			source.buffer.text = myFile.content
+			#register autocomplete
+			source.buffer.signal_connect("insert-text") do |buffer,iter,text,len|
+				autocomplete(buffer,iter,text,len)
+			end
+			#label
+			label = Gtk::Label.new
+			label.set_text(File.basename(file))
+			scrolledWindow = Gtk::ScrolledWindow.new
+			scrolledWindow.add(source)
+			@notebook.append_page(scrolledWindow,label)
+			@opened_files[file] = @notebook.n_pages - 1
+			@window.show_all
 		end
-		#label
-		label = Gtk::Label.new
-		label.set_text(file)
-		scrolledWindow = Gtk::ScrolledWindow.new
-		scrolledWindow.add(source)
-		@notebook.append_page(scrolledWindow,label)
-		@window.show_all
+		open_tab @opened_files.fetch(file)
+	end
+	
+	def open_tab(i)
+		@notebook.page = i
 	end
 	
 	def setupSignals
