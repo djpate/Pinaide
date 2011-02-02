@@ -38,7 +38,6 @@ class TreeViewFile
 	end
 	
 	def populate(d, obj_parent = nil)
-		puts d
 		directories = getDirectories(d)
 		files = getFiles(d)
 		
