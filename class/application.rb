@@ -1,9 +1,11 @@
 class Application
-	def initialize
+
+	def initialize(project_dir)
+		@project_dir = project_dir
 		Gtk.init
 		create_window
 		create_inner_layout
-		add_file("/var/www/fitizzy/trunk/kinaf")
+		setupSignals
 		@window.show_all
 		Gtk.main
 	end
@@ -18,28 +20,44 @@ class Application
 	
 	def create_inner_layout
 		@pane = Gtk::HPaned.new
-		tree = TreeViewFile.new("/var/www/fitizzy/trunk")
+		@tree = TreeViewFile.new(@project_dir)
+		
 		@notebook = Gtk::Notebook.new
-		@pane.add(tree.get)
+		@pane.add(@tree.get)
 		@pane.add(@notebook)
 		@window.add(@pane)
 	end
 	
 	def add_file(file)
-	    #file
-	    myFile = PinaideFile.new(file)
-	    #editor
-	    source = Gtk::SourceView.new
-	    lang = Gtk::SourceLanguageManager.new.get_language('php')
-	    source.buffer.language = lang
-	    source.set_show_line_numbers(true)
-        source.buffer.highlight_syntax = true
-        source.buffer.highlight_matching_brackets = true
-        source.buffer.text = myFile.content
-	    #label
-	    label = Gtk::Label.new
-	    label.set_text(file)
-	    @notebook.append_page(source,label)
+		puts "adding "+file
+		#file
+		myFile = PinaideFile.new(file)
+		#editor
+		source = Gtk::SourceView.new
+		lang = Gtk::SourceLanguageManager.new.get_language('php')
+		source.buffer.language = lang
+		source.set_show_line_numbers(true)
+		source.buffer.highlight_syntax = true
+		source.buffer.highlight_matching_brackets = true
+		source.buffer.text = myFile.content
+		#label
+		label = Gtk::Label.new
+		label.set_text(file)
+		@notebook.append_page(source,label)
+		@window.show_all
+	end
+	
+	def setupSignals
+		#tree
+		@tree.get.signal_connect("button-release-event") do
+			if iter = @tree.get.selection.selected
+				filename = @project_dir + "/" + iter[0]
+				if !File.directory? filename
+					 puts "loading "+filename
+					add_file(filename);
+				end
+			end
+		end
 	end
 	
 end

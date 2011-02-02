@@ -3,6 +3,7 @@ class TreeViewFile
 		@dir = dir
 		@treestore = Gtk::TreeStore.new(String)
 		populate(dir)
+		setRenderer
 	end
 	
 	def setRenderer
@@ -57,7 +58,6 @@ class TreeViewFile
 	end
 	
 	def get
-		setRenderer
 		return @tree
 	end
 	
