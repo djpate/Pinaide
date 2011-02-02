@@ -29,7 +29,6 @@ class Application
 	end
 	
 	def add_file(file)
-		puts "adding "+file
 		#file
 		myFile = PinaideFile.new(file)
 		#editor
@@ -40,10 +39,16 @@ class Application
 		source.buffer.highlight_syntax = true
 		source.buffer.highlight_matching_brackets = true
 		source.buffer.text = myFile.content
+		#register autocomplete
+		source.buffer.signal_connect("insert-text") do |buffer,iter,text,len|
+			autocomplete(buffer,iter,text,len)
+		end
 		#label
 		label = Gtk::Label.new
 		label.set_text(file)
-		@notebook.append_page(source,label)
+		scrolledWindow = Gtk::ScrolledWindow.new
+		scrolledWindow.add(source)
+		@notebook.append_page(scrolledWindow,label)
 		@window.show_all
 	end
 	
@@ -51,13 +56,27 @@ class Application
 		#tree
 		@tree.get.signal_connect("button-release-event") do
 			if iter = @tree.get.selection.selected
-				filename = @project_dir + "/" + iter[0]
+				path = iter[0]
+				loop = 1
+				while loop == 1
+					iter = iter.parent()
+					if(iter!=nil)
+						path = iter[0] + "/" + path
+					else 
+						loop = 0
+					end
+				end
+				puts path
+				filename = @project_dir + "/" + path
 				if !File.directory? filename
-					 puts "loading "+filename
 					add_file(filename);
 				end
 			end
 		end
+	end
+	
+	def autocomplete(buffer,iter,text,length)
+		
 	end
 	
 end
