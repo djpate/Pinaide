@@ -3,8 +3,7 @@ class Application
 		Gtk.init
 		create_window
 		create_inner_layout
-		add_file("test")
-		add_file("test2")
+		add_file("/var/www/fitizzy/trunk/kinaf")
 		@window.show_all
 		Gtk.main
 	end
@@ -27,11 +26,17 @@ class Application
 	end
 	
 	def add_file(file)
+	    #file
+	    myFile = PinaideFile.new(file)
+	    #editor
 	    source = Gtk::SourceView.new
 	    lang = Gtk::SourceLanguageManager.new.get_language('php')
 	    source.buffer.language = lang
+	    source.set_show_line_numbers(true)
         source.buffer.highlight_syntax = true
         source.buffer.highlight_matching_brackets = true
+        source.buffer.text = myFile.content
+	    #label
 	    label = Gtk::Label.new
 	    label.set_text(file)
 	    @notebook.append_page(source,label)
