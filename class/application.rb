@@ -23,6 +23,7 @@ class Application
 		@tree = TreeViewFile.new(@project_dir)
 		
 		@notebook = Gtk::Notebook.new
+		@notebook.scrollable = true
 		@pane.add(@tree.get)
 		@pane.add(@notebook)
 		@window.add(@pane)
@@ -54,7 +55,7 @@ class Application
 	
 	def setupSignals
 		#tree
-		@tree.get.signal_connect("button-release-event") do
+		@tree.get.signal_connect("cursor-changed") do
 			if iter = @tree.get.selection.selected
 				path = iter[0]
 				loop = 1
@@ -66,7 +67,6 @@ class Application
 						loop = 0
 					end
 				end
-				puts path
 				filename = @project_dir + "/" + path
 				if !File.directory? filename
 					add_file(filename);
