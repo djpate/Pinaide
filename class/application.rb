@@ -65,14 +65,15 @@ class Application
 			scrolledWindow = Gtk::ScrolledWindow.new
 			scrolledWindow.add(source)
 			@notebook.append_page(scrolledWindow,label)
-			@opened_files[file] = @notebook.n_pages - 1
+			@opened_files[file] = [@notebook.n_pages - 1,source]
 			@window.show_all
 		end
 		open_tab @opened_files.fetch(file)
 	end
 	
 	def open_tab(i)
-		@notebook.page = i
+		@notebook.page = i[0]
+		@current_editor = i[1]
 	end
 	
 	def setupSignals
@@ -101,6 +102,8 @@ class Application
 		#get the complete string to autocomplete by going back until we reach a space - new line etc
 		text = buffer.get_text(buffer.get_iter_at_offset(buffer.cursor_position-1),buffer.get_iter_at_offset(buffer.cursor_position)).chomp
 		if text != " " && text != ""
+			location = @current_editor.get_iter_location(buffer.get_iter_at_offset(buffer.cursor_position))
+			location = @current_editor.window_to_buffer_coords(Gtk::TextView::WINDOW_WIDGET,location.x,location.y)
 			offset = buffer.cursor_position-1
 			loop = 1
 			full_text = text
@@ -113,8 +116,23 @@ class Application
 					loop = 0
 				end
 			end
+			autocompleteWindow("somedoc","someprops",location[0],location[1])
 			puts full_text
 		end
+	end
+	
+	def autocompleteWindow(docs,props,x,y)
+		window = @current_editor.window
+		if @treeWindow == nil
+			@treeWindow = Gtk::Window.new(Gtk::Window::POPUP)
+			@treeContainer = Gtk::EventBox.new
+			@treeWindow.add(@treeContainer)
+			@docLabel = Gtk::Label.new
+			@treeContainer.add(@docLabel)
+		end
+		@docLabel.text = docs
+		@treeWindow.move(x + window.origin[0] + 40 ,y +  window.origin[1] + 20)
+		@treeWindow.show_all
 	end
 	
 end
