@@ -14,7 +14,7 @@ class Application
 	end
 	
 	def reset_project_file
-		if !File.directory? @pinaide_dir
+		if File.directory? @pinaide_dir
 			Dir.rmdir(@pinaide_dir)
 		end
 		if File.exist? @pinaide_dir+"/autocomplete.xml"
